@@ -17,13 +17,11 @@ public:
 	/* If the user was already in the grid, update the user in the grid. else, insert the user into the grid. */
 	void update_user(const UserInfo& c) {
 		if (userdict.contains_user(c)) {
-			std::cout << "contains!!!" << std::endl;
 			usergrid.erase_itor(userdict.get_itor(c));
 			auto result = usergrid.insert_user(c);
 			userdict.update_user(c, result);
 		}
 		else {
-			std::cout << "not contains!!!" << std::endl;
 			auto result = usergrid.insert_user(c);
 			userdict.update_user(c, result);
 		} 
