@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Notification Center</title>
+    <style>
+        body {
+            text-align: center;
+        }
+        h1 {
+            font-size: 40px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            color: #444;
+        }
+        input[type=text] {
+            width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+        .border {
+            padding: 15px;
+            border-color: #7a7a7a;
+            border-style: solid;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            border-width: 2px;
+            border-radius: 3px;
+        }
+        textarea {
+            width: 300px;
+            margin: 0 auto;
+            height: 200px;
+            display: block;
+            margin-top: 20px;
+        }
+        button {
+            background: #444;
+            margin-top: 20px;
+            color: white;
+            display: block;
+            margin: 20px auto;
+        }
+        input[type=radio] {
+            margin: 20px 10px;
+        }
+        select {
+            display: block;
+            width: 200px;
+            display: none;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Notification Center</h1>
+    <form method="post" action="http://localhost:8000/notify">
+        <input class="border" type="text" name="title" placeholder="notiification title">
+        <textarea class="border" name="message" placeholder="message"></textarea>
+        <input type="radio" name="type" value="all">Send to all
+        <input type="radio" name="type" value="topic">Send to topic subscribers only
+        <select class="border" name="topic">
+            <option value="topic1">Topic 1</option>
+            <option value="topic2">Topic 2</option>
+            <option value="topic3">Topic 3</option>
+        </select>
+        <button class="border">Send Notification</button>
+    </form>
+
+    <script>
+        var all = document.getElementsByName('type')[0]
+        var topic = document.getElementsByName('type')[1]
+        var select = document.getElementsByTagName('select')[0]
+        console.log(all, topic, select)
+        topic.onclick = function () {
+            select.style.display = 'block'
+            all.checked = false
+        }
+        all.onclick = function () {
+            select.style.display = 'none'
+            topic.checked = false
+        }
+    </script>
+</body>
+
+</html>
