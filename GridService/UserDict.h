@@ -19,7 +19,10 @@ public:
 	bool contains_user(const UserInfo &uinfo) {
 		return dict.find(uinfo.uid) != dict.end();
 	}
-
+	
+	ugrid_t::iterator get_itor(const UserInfo &uinfo) {
+		return dict[uinfo.uid];
+	}
 	grid_ulist_t clean_timeout_users() {
 		std::time_t now;
 		grid_ulist_t result;

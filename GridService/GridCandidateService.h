@@ -16,19 +16,17 @@ public:
 
 	/* If the user was already in the grid, update the user in the grid. else, insert the user into the grid. */
 	void update_user(const UserInfo& c) {
-		/*
-		if (userdict.contains_user(c.uinfo)) {
-			auto result = usergrid.update_user(GridCoord(c), c.uinfo.second);
-			userdict.update_user(c);
+		if (userdict.contains_user(c)) {
+			std::cout << "contains!!!" << std::endl;
+			usergrid.erase_itor(userdict.get_itor(c));
+			auto result = usergrid.insert_user(c);
+			userdict.update_user(c, result);
 		}
 		else {
-			auto result = usergrid.insert_user(GridCoord(c), c.uinfo.second);
-			userdict.update_user(c);
-		} */
-		userdict.update_user(c, 
-			userdict.contains_user(c) ?
-			usergrid.update_user(c) :
-			usergrid.insert_user(c)	);  // equal with the code above.
+			std::cout << "not contains!!!" << std::endl;
+			auto result = usergrid.insert_user(c);
+			userdict.update_user(c, result);
+		} 
 	}
 
 	/* Searches 2d grid with enlarging square manner, returning vector of uid's.*/
