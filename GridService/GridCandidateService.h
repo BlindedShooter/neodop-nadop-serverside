@@ -32,7 +32,7 @@ public:
 	}
 
 	/* Searches 2d grid with enlarging square manner, returning vector of uid's.*/
-	std::vector<uid_t> search_grid(const UserInfo& c, const int max_radius, const int target_num) {
+	std::vector<uid_t> search_grid(const GridCoord& centercoord, const int max_radius, const int target_num) {
 		std::time(&temp_time);
 
 		if (temp_time - last_clean_time > USER_LOCATION_INVALID_TIME) {
@@ -42,7 +42,6 @@ public:
 		std::vector<uid_t> result;
 		int helper_num = 0;
 
-		const GridCoord centercoord = GridCoord(c);
 		GridCoord tempcoord = centercoord, tempcoord2 = centercoord;
 		std::vector<uid_t> tmp_uid_list;
 

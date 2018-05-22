@@ -32,6 +32,9 @@ public:
 				result.push_back(tmp->second);
 				dict.erase(tmp);
 			}
+			else {
+				break;
+			}
 		}
 
 		return result;

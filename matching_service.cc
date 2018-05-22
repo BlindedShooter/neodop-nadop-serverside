@@ -78,7 +78,7 @@ void Grid_Object::update_user(const FunctionCallbackInfo<Value>& args) {
     uid_t uid_ = std::string(*param1);
     time_t t = static_cast<time_t>(args[3]->NumberValue());
 
-    candidate_service.update_user(Coordinate(lat, lon, uinfo_t(t, uid_)));
+    candidate_service.update_user(UserInfo(lat, lon, uid_, t));
     
     /*
     char buff[100];
