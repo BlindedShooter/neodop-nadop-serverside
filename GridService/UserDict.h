@@ -6,21 +6,18 @@
 class UserDict {
 private:
 	udict_t dict;
+	utimemap_t timemap;
 public:
-	void print_all_users() {
-		for (auto it : dict) {
-			std::cout << "uid: " << it.first.second << "\tx: " << it.second->first.x << "\ty: " << it.second->first.y << std::endl;
-		}
-	}
-	void insert_user(const uinfo_t &uinfo, const ugrid_t::iterator &c) {
+	void insert_user(const UserInfo &uinfo, const ugrid_t::iterator &c) {
 		update_user(uinfo, c);
 	}
-	void update_user(const uinfo_t &uinfo, const ugrid_t::iterator &c) {
-		dict.insert_or_assign(uinfo, c);
+	void update_user(const UserInfo &uinfo, const ugrid_t::iterator &c) {
+		dict.insert_or_assign(uinfo.uid, c);
+		timemap.insert_or_assign(uinfo.uid, uinfo.timestamp);
 	}	
 
-	bool contains_user(const uinfo_t &uinfo) {
-		return dict.find(uinfo) != dict.end();
+	bool contains_user(const UserInfo &uinfo) {
+		return dict.find(uinfo.uid) != dict.end();
 	}
 
 	grid_ulist_t clean_timeout_users() {
@@ -29,16 +26,11 @@ public:
 
 		std::time(&now);
 
-		auto temp = dict.begin();
-
-		for (auto it = dict.begin(); it != dict.end(); ++it) {
-			if (now - it->first.first > USER_LOCATION_INVALID_TIME) {
-				temp = it++;
-				result.push_back(temp->second);
-				dict.erase(temp);
-			}
-			else {
-				break;
+		for (auto it : timemap) {
+			if (now - it.second > USER_LOCATION_INVALID_TIME) {
+				auto tmp = dict.find(it.first);
+				result.push_back(tmp->second);
+				dict.erase(tmp);
 			}
 		}
 

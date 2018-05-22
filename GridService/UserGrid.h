@@ -14,8 +14,8 @@ public:
 	inline auto insert_user(const GridCoord &c, const uid_t &uid) {
 		return grid.insert({ c, uid });
 	}
-	inline auto insert_user(const Coordinate &c) {
-		return insert_user(GridCoord(c), c.uinfo.second);
+	inline auto insert_user(const UserInfo &c) {
+		return insert_user(GridCoord(c), c.uid);
 	}
 
 	void delete_user(const GridCoord& c, const uid_t &uid) {
@@ -32,8 +32,8 @@ public:
 		auto result = insert_user(c, uid);
 		return insert_user(c, uid);
 	}
-	inline auto update_user(const Coordinate& c) {
-		return update_user(GridCoord(c), c.uinfo.second);
+	inline auto update_user(const UserInfo& c) {
+		return update_user(GridCoord(c), c.uid);
 	}
 
 	std::vector<uid_t> get_users_in_cell(const GridCoord& c) {

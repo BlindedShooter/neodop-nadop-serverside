@@ -13,12 +13,9 @@ private:
 	std::time_t last_clean_time;
 
 public:
-	void print_all_users() {
-		userdict.print_all_users();
-	}
 
 	/* If the user was already in the grid, update the user in the grid. else, insert the user into the grid. */
-	void update_user(const Coordinate& c) {
+	void update_user(const UserInfo& c) {
 		/*
 		if (userdict.contains_user(c.uinfo)) {
 			auto result = usergrid.update_user(GridCoord(c), c.uinfo.second);
@@ -28,14 +25,14 @@ public:
 			auto result = usergrid.insert_user(GridCoord(c), c.uinfo.second);
 			userdict.update_user(c);
 		} */
-		userdict.update_user(c.uinfo, 
-			userdict.contains_user(c.uinfo) ?
+		userdict.update_user(c, 
+			userdict.contains_user(c) ?
 			usergrid.update_user(c) :
 			usergrid.insert_user(c)	);  // equal with the code above.
 	}
 
 	/* Searches 2d grid with enlarging square manner, returning vector of uid's.*/
-	std::vector<uid_t> search_grid(const GridCoord& centercoord, const int max_radius, const int target_num) {
+	std::vector<uid_t> search_grid(const UserInfo& c, const int max_radius, const int target_num) {
 		std::time(&temp_time);
 
 		if (temp_time - last_clean_time > USER_LOCATION_INVALID_TIME) {
@@ -45,6 +42,7 @@ public:
 		std::vector<uid_t> result;
 		int helper_num = 0;
 
+		const GridCoord centercoord = GridCoord(c);
 		GridCoord tempcoord = centercoord, tempcoord2 = centercoord;
 		std::vector<uid_t> tmp_uid_list;
 
@@ -101,21 +99,5 @@ public:
 	GridCandidateService() {
 		std::time(&last_clean_time);
 		std::time(&temp_time);
-
-		double lat = 0, lon = 0;
-	uinfo_t uinfo;
-	
-	for (int i = 0; i < 10; i++) {
-		lat += 0.0001;
-
-		lon = 0;
-
-		for (int j = 0; j < 10; j++) {
-			lon += 0.0001;
-			uinfo.second = std::to_string(i) + ',' + std::to_string(j);
-			update_user(Coordinate(lat, lon, uinfo));
-		}
-	}
-	
 	}
 };

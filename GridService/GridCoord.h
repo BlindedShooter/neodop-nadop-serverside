@@ -1,17 +1,15 @@
 #pragma once
-#include "Coordinate.h"
+#include "UserInfo.h"
 
 struct GridCoord {
 	int x, y;
 
 	GridCoord(int x, int y) : x(x), y(y) {}
 	/* Construct by Coordinate. has transformation formula to translate GPS coordinate into Grid Coordinate. */
-	GridCoord(const Coordinate &c) :
+	GridCoord(const UserInfo &c) :
 		x(static_cast<int>(std::round((c.lat + 180) * 4000))),
 		y(static_cast<int>(std::round((c.lon + 180) * 4000))) {};
-	GridCoord(double lat, double lon) : 
-		x(static_cast<int>(std::round((lat + 180) * 4000))),
-		y(static_cast<int>(std::round((lon + 180) * 4000))) {};
+
 	~GridCoord() {};
 
 	friend std::hash<GridCoord>;
