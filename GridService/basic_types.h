@@ -16,7 +16,7 @@ typedef std::vector<coord> coordvec_t;
 
 #define GRID_HASH_TABLE_RESERVE_BUCKET_SIZE 1000000
 #define USER_HASH_TABLE_RESERVE_SIZE 10000000
-#define USER_LOCATION_INVALID_TIME 10  // 10 mins = 600
+#define USER_LOCATION_INVALID_TIME 600  // 10 mins = 600
 
 
 /* Container for 'GPS' coordinate input (prototype!!), Contains double lat, double lon, uid_t uid.*/
