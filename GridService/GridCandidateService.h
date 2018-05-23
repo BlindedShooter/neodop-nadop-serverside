@@ -21,7 +21,7 @@ class GridCandidateService{
 private:
 	usergrid_t ugrid;
 	userset_t uset;
-	std::time_t last_search_time;
+	std::time_t last_search_time, last_cleanup_time;
 	std::size_t total_users = 0;
 public:
 	/* update the grid with given uinfo, insert if new and assign if already in. */
@@ -88,11 +88,29 @@ public:
 
 		return result;
 	}
+	
+	void cleanup_old_users() {
+		std::time(&last_cleanup_time);
+		for (auto it = ugrid.begin(); it != ugrid.end(); ) {
+			if (it->second.is_user_location_invalid(last_cleanup_time)) {
+				std::time(&last_cleanup_time);
+				uset.erase(it->second.uid);
+				it = ugrid.erase(it);
+			}
+			else {
+				it++;
+			}
+		}
+	}
 
 	size_t get_user_num() {
 		return total_users;
 	}
+	
 	std::time_t get_last_search_time() {
 		return last_search_time;
+	}
+	std::time_t get_last_cleanup_time() {
+		return last_cleanup_time;
 	}
 };
