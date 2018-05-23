@@ -78,7 +78,7 @@ void Grid_Object::update_user(const FunctionCallbackInfo<Value>& args) {
     uid_t uid_ = std::string(*param1);
     time_t t = static_cast<time_t>(args[3]->NumberValue());
 
-    candidate_service.update_user(UserInfo(lat, lon, uid_, t));
+    candidate_service.update_user(uinfo_t(lat, lon, uid_, t));
     
     /*
     char buff[100];
@@ -115,7 +115,7 @@ void Grid_Object::find_radius(const FunctionCallbackInfo<Value>& args) {
     }
 
     std::vector<uid_t> candidates = candidate_service.search_grid(
-        GridCoord(lat, lon), radius, target_num);
+        coord(lat, lon), radius, target_num);
 
     v8::Handle<v8::Array> arr = v8::Array::New(isolate, candidates.size());
 

@@ -1,98 +1,82 @@
 #pragma once
 
-#include "UserDict.h"
-#include "UserGrid.h"
+#include "GridCoord.h"
 
-#define append_to_result(tempcoord) tmp_uid_list = usergrid.get_users_in_cell(tempcoord); helper_num += tmp_uid_list.size(); result.insert(result.end(), tmp_uid_list.begin(), tmp_uid_list.end());
+/* each bucket represents 1 cell of the grid*/
+typedef std::unordered_multimap<coord, utime_t> usergrid_t;
+typedef std::unordered_set<uid_t> userset_t;
 
-class GridCandidateService {
+/* iterates through pair<itor begin, itor end>. should manually increment iterator. */
+#define for_range(range) for (auto it = range.first; it != range.second;)
+/* iterates through equal_range of given GridCoord 'c'. iterator name is 'it'.*/
+#define for_cell(c) for_range(ugrid.equal_range(c))
+
+#define is_contain(container, key) container.find(key) != container.end()
+#define delete_from(container, key) container.erase(container.find(key))
+/* Quite weird but first uinfo is automatically tranformed into 'coord', and the second is to 'utime_t'. */
+#define insert_to_grid(uinfo) ugrid.insert({ uinfo, uinfo })
+
+class GridCandidateService{
 private:
-	UserGrid usergrid;
-	UserDict userdict;
-	std::time_t temp_time;
-	std::time_t last_clean_time;
-
+	usergrid_t ugrid;
+	userset_t uset;
+	std::time_t last_search_time;
+	std::size_t total_users = 0;
 public:
-
-	/* If the user was already in the grid, update the user in the grid. else, insert the user into the grid. */
-	void update_user(const UserInfo& c) {
-		if (userdict.contains_user(c)) {
-			usergrid.erase_itor(userdict.get_itor(c));
-			auto result = usergrid.insert_user(c);
-			userdict.update_user(c, result);
+	void update_user(const uinfo_t &uinfo) {
+		if (is_contain(uset, uinfo.uid)) {
+			for_cell(uinfo) {
+				if (it->second.uid == uinfo.uid) {
+					if (it->first != uinfo) {
+						ugrid.erase(it);
+						insert_to_grid(uinfo);
+					}
+					else {
+						it->second.timestamp = uinfo.timestamp;
+					}
+					break;
+				}
+				it++;
+			}
 		}
 		else {
-			auto result = usergrid.insert_user(c);
-			userdict.update_user(c, result);
-		} 
+			uset.insert(uinfo.uid);
+			insert_to_grid(uinfo);
+			total_users++;
+		}
 	}
 
-	/* Searches 2d grid with enlarging square manner, returning vector of uid's.*/
-	std::vector<uid_t> search_grid(const GridCoord& centercoord, const int max_radius, const int target_num) {
-		std::time(&temp_time);
+	uservec_t search_grid(const coord &c, const int max_radius, const int target_num) {
+		uservec_t result;
+		std::time(&last_search_time);
+		bool search_finish = false;
 
-		if (temp_time - last_clean_time > USER_LOCATION_INVALID_TIME) {
-			do_clean();
-		}
-
-		std::vector<uid_t> result;
-		int helper_num = 0;
-
-		GridCoord tempcoord = centercoord, tempcoord2 = centercoord;
-		std::vector<uid_t> tmp_uid_list;
-
-		append_to_result(centercoord);
-
-		for (int r = 1; r <= max_radius; r++) {
-			if (helper_num > target_num) break;
-			tempcoord.x -= r;
-			tempcoord.y -= r;
-			tempcoord2.x += r;
-			tempcoord2.y -= r;
-
-			for (int i = 0; i <= r + r; i++) {
-				append_to_result(tempcoord);
-				append_to_result(tempcoord2);
-
-				if (helper_num > target_num) break;
-
-				tempcoord.y++;
-				tempcoord2.y++;
+		for (int r = 0; r < max_radius; r++) {
+			for (coord t : c.radius_sqaure(r)) {
+				for_cell(t) {
+					if (it->second.is_user_location_invalid(last_search_time)) {
+						uset.erase(it->second.uid);
+						it = ugrid.erase(it);
+						total_users--;
+					}
+					else {
+						result.push_back(it->second.uid);
+						if (result.size() > target_num) {
+							search_finish = true;
+							break;
+						}
+						it++;
+					}
+				}
+				if (search_finish = true) break;
 			}
-			if (helper_num > target_num) break;
-
-			tempcoord = centercoord;
-			tempcoord2 = centercoord;
-
-			tempcoord.x -= r;
-			tempcoord.y -= r;
-			tempcoord2.x -= r;
-			tempcoord2.y += r;
-
-			for (int i = 1; i < r + r; i++) {
-				tempcoord.x++;
-				tempcoord2.x++;
-
-				append_to_result(tempcoord);
-				append_to_result(tempcoord2);
-
-				if (helper_num > target_num) break;
-			}
+			if (search_finish = true) break;
 		}
 
 		return result;
 	}
 
-	void do_clean() {
-		std::time(&last_clean_time);  // update time
-		auto grid_ulist = userdict.clean_timeout_users();
-		for (auto it : grid_ulist) {
-			usergrid.erase_itor(it);
-		}
-	}
-
-	GridCandidateService() {
-		std::time(&last_clean_time);
-		std::time(&temp_time);
+	size_t get_user_num() {
+		return total_users;
 	}
 };
