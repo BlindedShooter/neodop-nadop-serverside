@@ -5,7 +5,7 @@ struct coord {
 	int x, y;
 
 	coord(int x, int y) : x(x), y(y) {}
-	/* Construct by Coordinate. has transformation formula to translate GPS coordinate into Grid Coordinate. */
+	/* Construct by uinfo_t. has transformation formula to translate GPS coordinate into Grid Coordinate. */
 	coord(const uinfo_t &c) :
 		x(static_cast<int>(std::round((c.lat + 180) * 4000))),
 		y(static_cast<int>(std::round((c.lon + 180) * 4000))) {};
@@ -15,6 +15,7 @@ struct coord {
 
 	~coord() {};
 
+	/* returns vector of coords that forms a sqaure sided 2r+1, with center to this coord. */
 	coordvec_t radius_sqaure(const int &r) const {
 		coordvec_t result;
 
@@ -41,7 +42,7 @@ struct coord {
 	friend bool operator!=(const coord& c1, const coord& c2);
 };
 
-
+// custom hash function for coord. just xor of two hash<int>s.
 namespace std {
 	template<>
 	class hash<coord> {
@@ -54,6 +55,7 @@ namespace std {
 	};
 }; 
 
+// below are required operator for STL containers.
 inline bool operator==(const coord& c1, const coord& c2) {
 	return (c1.x == c2.x) && (c1.y == c2.y);
 };
