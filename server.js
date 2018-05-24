@@ -15,13 +15,13 @@ app.use(bodyParser.urlencoded({
 
 app.post('/updateloc', (req, res) => {
     gcs.update(parseFloat(req.body.lat), parseFloat(req.body.lon), req.body.uid, parseInt(req.body.timestamp));
-    console.log("updated!");
+    console.log("lat: ", req.body.lat, ", lon: ", req.body.lon, "  helper updated!");
     res.sendStatus(200)
 })
 
 app.post('/requesthelp', (req, res) => {
     var candidates = gcs.search(parseFloat(req.body.lat), parseFloat(req.body.lon));
-    console.log(candidates);
+    console.log("request help from lat: ", req.body.lat, ", lon: ", req.body.lon, "\ncandidates: ", candidates);
     res.sendStatus(200)
 })
 
