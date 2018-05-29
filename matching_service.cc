@@ -93,9 +93,11 @@ void Grid_Object::find_radius(const FunctionCallbackInfo<Value>& args) {
     int radius, target_num;
 
     if (args.Length() < 2) {
+        args.GetReturnValue().Set(String::NewFromUtf8(isolate, "wrong number of arguments"));
         return;
     }
     if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
+        args.GetReturnValue().Set(String::NewFromUtf8(isolate, "wrong argument types"));
         return;
     }
     
