@@ -29,7 +29,7 @@ app.use(bodyParser.urlencoded({
 app.post('/updateloc', (req, res) => {
     if (req.body.lat && req.body.lon && req.body.uid && req.body.timestamp) {
         var result = gcs.update(parseFloat(req.body.lat), parseFloat(req.body.lon), req.body.uid, parseInt(req.body.timestamp));
-        console.log("lat: ", req.body.lat, ", lon: ", req.body.lon, "  helper updated!");
+        console.log("lat: ", req.body.lat, ", lon: ", req.body.lon, " uid: ", req.body.uid, "  helper updated!\n");
         res.sendStatus(200);
     }
     else {
@@ -43,8 +43,9 @@ app.post('/requesthelp', (req, res) => {
     var uid = req.body.uid;
 
     if (Array.isArray(candidates)) {
-        console.log("request help from lat: ", req.body.lat, ", lon: ", req.body.lon, "\ncandidates: ", candidates);
-        
+        console.log("Help request from lat: ", req.body.lat, ", lon: ", req.body.lon);
+        console.log("Candidates: ", candidates);
+        console.log("\n=> Messaging Progress:");
         // What the hell of the callbacks...... Not understanble nor maintainable.
         if (candidates.length >= minimum_helpers) {
             userRef.doc(uid).get().then(doc => {
@@ -68,10 +69,10 @@ app.post('/requesthelp', (req, res) => {
                                     admin.messaging().send(message)
                                         .then((response) => {
                                         // Response is a message ID string.
-                                            console.log('Successfully sent message:', response);
+                                            console.log('==== Successfully sent message:', response, " to uid: ", doc.id);
                                         })
                                         .catch((error) => {
-                                            console.log('Error sending message:', error);
+                                            console.log('==== Error sending message:', error.errorInfo.message, " while to uid: ", doc.id);
                                         });
                                 }
                             })
