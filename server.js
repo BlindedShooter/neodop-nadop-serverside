@@ -39,11 +39,11 @@ app.post('/updateloc', (req, res) => {
 })
 
 app.post('/requesthelp', (req, res) => {
-    var candidates = gcs.search(parseFloat(req.body.lat), parseFloat(req.body.lon));
+    var candidates = gcs.search(parseFloat(req.body.lat), parseFloat(req.body.lon), 5.0, 5.0);
     var uid = req.body.uid;
-
+    var req_type = 'request';
     if (Array.isArray(candidates)) {
-        console.log("Help request from lat: ", req.body.lat, ", lon: ", req.body.lon);
+        console.log("Help request from lat: ", req.body.lat, ", lon: ", req.body.lon, ", uid: ", uid);
         console.log("Candidates: ", candidates);
         console.log("\n=> Messaging Progress:");
         // What the hell of the callbacks...... Not understanble nor maintainable.
@@ -61,7 +61,8 @@ app.post('/requesthelp', (req, res) => {
                                 } else {
                                     var message = {
                                         data: {
-                                            helper_uid: uid,
+                                            type: req_type,
+                                            helpee_uid: uid,
                                             help_info: req.body.info
                                         },
                                         token: doc.data().token
@@ -91,10 +92,32 @@ app.post('/requesthelp', (req, res) => {
 
 app.post('/accepthelp', (req, res) => {
     var help_code = res.body.helperuid;
+    var req_type = 'match_success';
     if (ongoing_help.has(help_code)) {
         res.sendStatus(400);
     }
     else {
+        userRef.doc(req.body.helpeeuid).get()
+            .then(doc=> {
+                if (!doc.exists) {
+                    console.log('No such helper!');
+                } else {
+                    var message = {
+                        data: {
+                            type: req_type,
+                            helper_uid: res.body.helperuid
+                        },
+                        token: doc.data().token
+                    };
+                    admin.messaging().send(message)
+                        .then((response) => {
+                            console.log("======== matching success ========");
+                        })
+                        .catch((error) => {
+                            console.log("======== Error Sending Message: ", error.errorInfo.message);
+                        })
+                }
+            })
         ongoing_help.set(help_code, 1);
         res.sendStatus(200);
     }
