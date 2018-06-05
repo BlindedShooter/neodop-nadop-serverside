@@ -93,7 +93,6 @@ public:
 		std::time(&last_cleanup_time);
 		for (auto it = ugrid.begin(); it != ugrid.end(); ) {
 			if (it->second.is_user_location_invalid(last_cleanup_time)) {
-				std::time(&last_cleanup_time);
 				uset.erase(it->second.uid);
 				it = ugrid.erase(it);
 			}
