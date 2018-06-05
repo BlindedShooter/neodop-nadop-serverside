@@ -10,7 +10,7 @@ const minimum_helpers = 1;
 var ongoing_help = new Map();
 
 var admin = require("firebase-admin");
-var serviceAccount = require("./neodop-nadop-firebase-adminsdk-utczv-77988483c9.json");
+var serviceAccount = require("./neodop-nadop-firebase-adminsdk-utczv-d5487d8c7f.json");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -90,7 +90,7 @@ app.post('/requesthelp', (req, res) => {
 })
 
 app.post('/accepthelp', (req, res) => {
-    var help_code = res.body.helperuid + res.body.helpeeuid;
+    var help_code = res.body.helperuid;
     if (ongoing_help.has(help_code)) {
         res.sendStatus(400);
     }
@@ -101,7 +101,7 @@ app.post('/accepthelp', (req, res) => {
 })
 
 app.post('/finishhelp', (req, res) => {
-    var help_code = res.body.helperuid + res.body.helpeeuid;
+    var help_code = res.body.helperuid;
     if (ongoing_help.has(help_code)) {
         ongoing_help.delete(help_code);
         res.sendStatus(200);
