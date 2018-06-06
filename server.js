@@ -19,6 +19,7 @@ admin.initializeApp({
 var firedb = admin.firestore();
 var userRef = firedb.collection('users');
 
+console.log("======== Server Started ========");
 
 
 app.use(bodyParser.json())
