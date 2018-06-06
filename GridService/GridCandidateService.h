@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GridCoord.h"
+#include <iostream>
 
 /* each bucket represents 1 cell of the grid*/
 typedef std::unordered_multimap<coord, utime_t> usergrid_t;
@@ -26,18 +27,22 @@ private:
 public:
 	/* update the grid with given uinfo, insert if new and assign if already in. */
 	void update_user(const uinfo_t &uinfo) {
+		std::cout << "[C++]: update_user request   ";
 		/* If there is a user with the uid in the grid already, */
 		if (is_contain(uset, uinfo.uid)) {
 			for_cell(uinfo) {
 				/* find the user,*/
 				if (it->second.uid == uinfo.uid) {
+					std::cout << "uid found in the server, uid: " << uinfo.uid << "  ";
 					/* and if the coord was changed, */
 					if (it->first != uinfo) {
+						std::cout << "coord changed to: " << uinfo.lat << ", " << uinfo.lon << std::endl;
 						ugrid.erase(it);  // erase previous info and
 						insert_to_grid(uinfo); // insert new info to the grid. (since coord is the key)
 					}
 					/* but if the coord was not changed, */
 					else {
+						std::cout << "coord not changed, updating timestamp from " << it->second.timestamp << " to: " << uinfo.timestamp << std::endl;
 						/* just update its timestamp. */
 						it->second.timestamp = uinfo.timestamp;
 					}
