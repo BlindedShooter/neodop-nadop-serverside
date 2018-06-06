@@ -19,7 +19,7 @@ admin.initializeApp({
 var firedb = admin.firestore();
 var userRef = firedb.collection('users');
 
-console.log("======== Server Started ========");
+console.log("======== Server Started ========\n");
 
 
 app.use(bodyParser.json())
@@ -30,11 +30,11 @@ app.use(bodyParser.urlencoded({
 app.post('/updateloc', (req, res) => {
     if (req.body.lat && req.body.lon && req.body.uid && req.body.timestamp) {
         var result = gcs.update(parseFloat(req.body.lat), parseFloat(req.body.lon), req.body.uid, parseInt(req.body.timestamp));
-        console.log("lat: ", req.body.lat, ", lon: ", req.body.lon, " uid: ", req.body.uid, "  helper updated!\n");
+        console.log("\n[Updateloc] lat: ", req.body.lat, ", lon: ", req.body.lon, " uid: ", req.body.uid, "  helper updated!\n");
         res.sendStatus(200);
     }
     else {
-        console.log("argument error!");
+        console.log("[Updateloc] argument error!\n");
         res.sendStatus(400);
     }
 })
@@ -44,21 +44,26 @@ app.post('/requesthelp', (req, res) => {
     var uid = req.body.uid;
     var req_type = 'request';
     if (Array.isArray(candidates)) {
-        console.log("Help request from lat: ", req.body.lat, ", lon: ", req.body.lon, ", uid: ", uid);
-        console.log("Candidates: ", candidates);
-        console.log("\n=> Messaging Progress:");
+        var len = candidates.length;
+        console.log("[Requesthelp] Help request from lat: ", req.body.lat, ", lon: ", req.body.lon, ", uid: ", uid);
+        console.log("[Requesthelp] => Candidates: ", candidates);
         // What the hell of the callbacks...... Not understanble nor maintainable.
         if (candidates.length >= minimum_helpers) {
             userRef.doc(uid).get().then(doc => {
                 if (!doc.exists) {
-                    console.log('invalid helpee uid');
+                    console.log('[Requesthelp] ==== Invalid helpee uid (document not exists on firestore) ====\n');
                     res.sendStatus(400);
                 } else {
-                    for (var i = 0, len = candidates.length; i < len; i++) {
+                    res.sendStatus(200);
+                    console.log("\n[Requesthelp] =======> Messaging Progress:");
+                    for (var i = 0; i < len; i++) {
                         userRef.doc(candidates[i]).get()
                             .then(doc => {
                                 if (!doc.exists) {
-                                    console.log('No such helper!');
+                                    console.log('[Requesthelp] ==== No such helper! ====');
+                                    if (i == len - 1) {
+                                        console.log("[Requesthelp] =======> Messaging Finished\n")
+                                    }
                                 } else {
                                     var message = {
                                         data: {
@@ -71,22 +76,30 @@ app.post('/requesthelp', (req, res) => {
                                     admin.messaging().send(message)
                                         .then((response) => {
                                         // Response is a message ID string.
-                                            console.log('==== Successfully sent message:', response, " to uid: ", doc.id);
+                                            console.log('[Requesthelp] ==== Successfully sent message:', response, " to uid: ", doc.id, "====");
+                                            if (i == len - 1) {
+                                                console.log("[Requesthelp] =======> Messaging Finished\n")
+                                            }
                                         })
                                         .catch((error) => {
-                                            console.log('==== Error sending message:', error.errorInfo.message, " while to uid: ", doc.id);
+                                            console.log('[Requesthelp] ==== Error sending message:', error.errorInfo.message, " while to uid: ", doc.id, "====");
+                                            if (i == len - 1) {
+                                                console.log("[Requesthelp] =======> Messaging Finished\n")
+                                            }
                                         });
                                 }
                             })
                     }
-                    res.sendStatus(200);
                 }
             })    
         }
+        else {
+            console.log("[Requesthelp] Not enough helpers for ", uid, "\n");
+            res.sendStatus(400);
+        }
     }
     else {
-        console.log("Invalid help request from ", res.body.uid);
-
+        console.log("[Requesthelp] Invalid help request from ", uid, "\n");
         res.sendStatus(400);
     }
 })
@@ -101,7 +114,7 @@ app.post('/accepthelp', (req, res) => {
         userRef.doc(req.body.helpeeuid).get()
             .then(doc=> {
                 if (!doc.exists) {
-                    console.log('No such helper!');
+                    console.log('[Accepthelp] No such helper! (document not exists in firestore)');
                 } else {
                     var message = {
                         data: {
@@ -112,10 +125,10 @@ app.post('/accepthelp', (req, res) => {
                     };
                     admin.messaging().send(message)
                         .then((response) => {
-                            console.log("======== matching success ========");
+                            console.log("[Accepthelp] ======== matching success ========");
                         })
                         .catch((error) => {
-                            console.log("======== Error Sending Message: ", error.errorInfo.message);
+                            console.log("[Accepthelp] ======== Error Sending Message: ", error.errorInfo.message);
                         })
                 }
             })
@@ -129,9 +142,11 @@ app.post('/finishhelp', (req, res) => {
     if (ongoing_help.has(help_code)) {
         ongoing_help.delete(help_code);
         res.sendStatus(200);
+        console.log("[Finishhelp] Helping Finished, helper UID: ", help_code);
     }
     else {
         res.sendStatus(400);
+        console.log("[Finishhelp] Invalid Finish Request, helper UID: ", help_code);
     }
 })
 
