@@ -33,6 +33,8 @@ void Grid_Object::Init(Local<Object> exports) {
     //NODE_SET_PROTOTYPE_METHOD(tpl, "plusOne", PlusOne);
     NODE_SET_PROTOTYPE_METHOD(tpl, "update", update_user);
     NODE_SET_PROTOTYPE_METHOD(tpl, "search", find_radius);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "get_users", get_all_users);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "clean", clean_grid);
 
     constructor.Reset(isolate, tpl->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "Matching_Service"), tpl->GetFunction());
@@ -116,7 +118,7 @@ void Grid_Object::find_radius(const FunctionCallbackInfo<Value>& args) {
         target_num = static_cast<int>(args[3]->NumberValue());
     }
 
-    std::vector<uid_t> candidates = candidate_service.search_grid(
+    uservec_t candidates = candidate_service.search_grid(
         coord(lat, lon), radius, target_num);
 
     v8::Handle<v8::Array> arr = v8::Array::New(isolate, candidates.size());
@@ -126,6 +128,35 @@ void Grid_Object::find_radius(const FunctionCallbackInfo<Value>& args) {
     }
 
     args.GetReturnValue().Set(arr);
+}
+
+
+void Grid_Object::get_all_users(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    Isolate* isolate = args.GetIsolate();
+    coordvec_t users = candidate_service.get_all_users();
+    std::string result;
+    int i = 0;
+    for (auto const& user : users) {
+        result += "#";
+        result += std::to_string(i++);
+        result += "   uid: ";
+        result += user.uid;
+        result += ", lat: ";
+        result += std::to_string(user.lat);
+        result += ", lon: "; 
+        result += std::to_string(user.lon);
+        result += ", Grid coordinate: (";
+        result += std::to_string(user.x);
+        result += ", ";
+        result += std::to_string(user.y);
+        result += ")\n";
+    }
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, result.c_str()));
+}
+
+void Grid_Object::clean_grid(const v8::FunctionCallbackInfo<v8::Value>& args) {
+    Isolate* isolate = args.GetIsolate();
+    candidate_service.cleanup_old_users();
 }
 
 }

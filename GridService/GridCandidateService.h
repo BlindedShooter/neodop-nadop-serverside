@@ -9,9 +9,9 @@ typedef std::unordered_set<uid_t> userset_t;
 
 /* iterates through pair<itor begin, itor end>. should manually increment iterator. */
 #define for_range(range) for (auto it = range.first; it != range.second;)
-/* iterates through equal_range of given GridCoord 'c'. iterator name is 'it'.*/
 #define for_cell(c) for_range(ugrid.equal_range(c))
 /* returns true if the container has the key, or false. */
+/* iterates through equal_range of given GridCoord 'c'. iterator name is 'it'.*/
 #define is_contain(container, key) container.find(key) != container.end()
 /* delete key from container.*/
 #define delete_from(container, key) container.erase(container.find(key))
@@ -27,22 +27,22 @@ private:
 public:
 	/* update the grid with given uinfo, insert if new and assign if already in. */
 	void update_user(const uinfo_t &uinfo) {
-		std::cout << "[C++]: update_user request   ";
+		//std::cout << "[C++]: update_user request   ";
 		/* If there is a user with the uid in the grid already, */
 		if (is_contain(uset, uinfo.uid)) {
 			for_cell(uinfo) {
 				/* find the user,*/
 				if (it->second.uid == uinfo.uid) {
-					std::cout << "uid found in the server, uid: " << uinfo.uid << "  ";
+					//std::cout << "uid found in the server, uid: " << uinfo.uid << "  ";
 					/* and if the coord was changed, */
 					if (it->first != uinfo) {
-						std::cout << "coord changed to: " << uinfo.lat << ", " << uinfo.lon << std::endl;
+						//std::cout << "coord changed to: " << uinfo.lat << ", " << uinfo.lon << std::endl;
 						ugrid.erase(it);  // erase previous info and
 						insert_to_grid(uinfo); // insert new info to the grid. (since coord is the key)
 					}
 					/* but if the coord was not changed, */
 					else {
-						std::cout << "coord not changed, updating timestamp from " << it->second.timestamp << " to: " << uinfo.timestamp << std::endl;
+						//std::cout << "coord not changed, updating timestamp from " << it->second.timestamp << " to: " << uinfo.timestamp << std::endl;
 						/* just update its timestamp. */
 						it->second.timestamp = uinfo.timestamp;
 					}
@@ -105,6 +105,14 @@ public:
 				it++;
 			}
 		}
+	}
+
+	coordvec_t get_all_users() {
+		coordvec_t result;
+		for (auto const& i : ugrid) {
+			result.push_back(i.first);
+		}
+		return result;
 	}
 
 	size_t get_user_num() {

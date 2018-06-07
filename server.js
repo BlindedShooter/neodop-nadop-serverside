@@ -30,17 +30,17 @@ app.use(bodyParser.urlencoded({
 app.post('/updateloc', (req, res) => {
     if (req.body.lat && req.body.lon && req.body.uid && req.body.timestamp) {
         var result = gcs.update(parseFloat(req.body.lat), parseFloat(req.body.lon), req.body.uid, parseInt(req.body.timestamp));
-        console.log("\n[Updateloc] lat: ", req.body.lat, ", lon: ", req.body.lon, " uid: ", req.body.uid, "  helper updated!\n");
+        //console.log("\n[Updateloc] lat: ", req.body.lat, ", lon: ", req.body.lon, " uid: ", req.body.uid, "  helper updated!\n");
         res.sendStatus(200);
     }
     else {
-        console.log("[Updateloc] argument error!\n");
+        //console.log("[Updateloc] argument error!\n");
         res.sendStatus(400);
     }
 })
 
 app.post('/requesthelp', (req, res) => {
-    var candidates = gcs.search(parseFloat(req.body.lat), parseFloat(req.body.lon), 5.0, 5.0);
+    var candidates = gcs.search(parseFloat(req.body.lat), parseFloat(req.body.lon), 4.0, 10.0);
     var uid = req.body.uid;
     var req_type = 'request';
     if (Array.isArray(candidates)) {
@@ -106,6 +106,7 @@ app.post('/requesthelp', (req, res) => {
 
 app.post('/accepthelp', (req, res) => {
     var help_code = res.body.helperuid;
+    var helper_uid_ = res.body.helperuid;
     var req_type = 'match_success';
     if (ongoing_help.has(help_code)) {
         res.sendStatus(400);
@@ -119,7 +120,7 @@ app.post('/accepthelp', (req, res) => {
                     var message = {
                         data: {
                             type: req_type,
-                            helper_uid: res.body.helperuid
+                            helper_uid: helper_uid_
                         },
                         token: doc.data().token
                     };
@@ -150,4 +151,9 @@ app.post('/finishhelp', (req, res) => {
     }
 })
 
+app.get('/show_all_helpers', (req, res) => {
+    res.set('Content-Type', 'text/plain');
+    res.status(200);
+    res.send("==== Available Helpers ====\n" + gcs.get_users());
+})
 app.listen(8000);

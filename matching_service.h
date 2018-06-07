@@ -23,8 +23,12 @@ namespace demo {
         
         /* .update(double lat, double long, string uid, double time)*/
         static void update_user(const v8::FunctionCallbackInfo<v8::Value>& args);
-        /* .find(double lat, double long, double radius, double target_num).  radius is that of Grid, not meters or somthing.*/
+        /* .search(double lat, double long, double radius, double target_num).  radius is that of Grid, not meters or somthing.*/
         static void find_radius(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+        static void get_all_users(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+        static void clean_grid(const v8::FunctionCallbackInfo<v8::Value>& args);
 
 
         static v8::Persistent<v8::Function> constructor;

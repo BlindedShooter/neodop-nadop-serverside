@@ -2,13 +2,19 @@
 #include "basic_types.h"
 
 struct coord {
+	uid_t uid;
+	double lat, lon;
+	std::time_t timestamp;
+
 	int x, y;
+	
 
 	coord(int x, int y) : x(x), y(y) {}
 	/* Construct by uinfo_t. has transformation formula to translate GPS coordinate into Grid Coordinate. */
 	coord(const uinfo_t &c) :
 		x(static_cast<int>(std::round((c.lat + 180) * 1000))),
-		y(static_cast<int>(std::round((c.lon + 180) * 1000))) {};
+		y(static_cast<int>(std::round((c.lon + 180) * 1000))),
+		uid(c.uid), lat(c.lat), lon(c.lon), timestamp(c.timestamp) {};
 	coord(double lat, double lon) : 
 		x(static_cast<int>(std::round((lat + 180) * 1000))),
 		y(static_cast<int>(std::round((lon + 180) * 1000))) {};
