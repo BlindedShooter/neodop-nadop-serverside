@@ -1,5 +1,5 @@
 # neodop-nadop-serverside
-This is a server implementation for 'Neodop Nadop' service. Used node.js for server implementation, and node.js C++ addon for matching algorithm implementation. Used Google Firebase Firestore as a database, and Firebase Cloud Messaging to signal the users.
+SKKU Software Experiment 3 Project, 2018 spring. This is a server implementation for 'Neodop Nadop' service. Used node.js for server implementation, and node.js C++ addon for matching algorithm implementation. Used Google Firebase Firestore as a database, and Firebase Cloud Messaging to signal the users.
 
 Installation: npm install
 
