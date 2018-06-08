@@ -12,6 +12,7 @@
 typedef std::string uid_t;
 typedef std::vector<uid_t> uservec_t;
 typedef std::vector<struct coord> coordvec_t;
+typedef std::vector<struct uinfo_t> uinfovec_t;
 
 /* Number of cells(buckets) to reserve in the grid. */
 #define GRID_HASH_TABLE_RESERVE_BUCKET_SIZE 1000000
@@ -31,17 +32,7 @@ struct uinfo_t {
 	uinfo_t(double latitude, double longitude, uid_t uid_, std::time_t timestamp_)
 		: lat(latitude), lon(longitude), uid(uid_), timestamp(timestamp_)
 	{};
-};
 
-/* struct for uid, timestamp pair */
-struct utime_t {
-	uid_t uid;
-	std::time_t timestamp;
-
-	utime_t(uid_t uid, std::time_t timestamp) : uid(uid), timestamp(timestamp) {};
-	utime_t(const uinfo_t& uinfo) : uid(uinfo.uid), timestamp(uinfo.timestamp) {};
-
-	/* returns true if the arg (current_time) - timestamp is larger than USER_LOCATION_INVALID_TIME. */
 	inline bool is_user_location_invalid(const std::time_t current_time) {
 		return current_time - timestamp > USER_LOCATION_INVALID_TIME;
 	}

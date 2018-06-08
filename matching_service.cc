@@ -133,8 +133,13 @@ void Grid_Object::find_radius(const FunctionCallbackInfo<Value>& args) {
 
 void Grid_Object::get_all_users(const v8::FunctionCallbackInfo<v8::Value>& args) {
     Isolate* isolate = args.GetIsolate();
-    coordvec_t users = candidate_service.get_all_users();
+    uinfovec_t users = candidate_service.get_all_users();
     std::string result;
+    std::time_t t;
+    std::time(&t);
+    result += "Current Server timestamp: ";
+    result += std::to_string(t);
+    result += "\n";
     int i = 0;
     for (auto const& user : users) {
         result += "#";
@@ -145,11 +150,9 @@ void Grid_Object::get_all_users(const v8::FunctionCallbackInfo<v8::Value>& args)
         result += std::to_string(user.lat);
         result += ", lon: "; 
         result += std::to_string(user.lon);
-        result += ", Grid coordinate: (";
-        result += std::to_string(user.x);
-        result += ", ";
-        result += std::to_string(user.y);
-        result += ")\n";
+        result += ", timestamp: ";
+        result += std::to_string(user.timestamp);
+        result += "\n";
     }
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, result.c_str()));
 }

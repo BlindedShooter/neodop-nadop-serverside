@@ -4,7 +4,7 @@
 #include <iostream>
 
 /* each bucket represents 1 cell of the grid*/
-typedef std::unordered_multimap<coord, utime_t> usergrid_t;
+typedef std::unordered_multimap<coord, uinfo_t> usergrid_t;
 typedef std::unordered_set<uid_t> userset_t;
 
 /* iterates through pair<itor begin, itor end>. should manually increment iterator. */
@@ -107,10 +107,10 @@ public:
 		}
 	}
 
-	coordvec_t get_all_users() {
-		coordvec_t result;
+	uinfovec_t get_all_users() {
+		uinfovec_t result;
 		for (auto const& i : ugrid) {
-			result.push_back(i.first);
+			result.push_back(i.second);
 		}
 		return result;
 	}
