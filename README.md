@@ -7,6 +7,6 @@ It can require node-gyp to build a C++ addon for it, so use command below if npm
 
 npm install express request body-parser firebase-admin --save
 
-Also, it requires Firebase Admin SDK's credential file for the Admin SDK. (The file named <Project Name>-firebase-admin-sdk-utczv-<some code>.json) 
+Also, it requires Firebase Admin SDK's credential file for the Admin SDK. (The file named "Project Name"-firebase-admin-sdk-utczv-"some code".json) 
 
 혹시 필요하시다면 3조 이지훈에게 연락주시면 됩니다 조교님.
