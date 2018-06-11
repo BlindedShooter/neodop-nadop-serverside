@@ -5,12 +5,16 @@ const app = require('express')(),
     bodyParser = require('body-parser'),
     gridservice = require('./build/Release/matching_service_addon');
 
+var async = require('async');
+
 const gcs = new gridservice.Matching_Service();
 const minimum_helpers = 1;
+const minimum_rating = 1;
 var ongoing_help = new Map();
 
 var admin = require("firebase-admin");
 var serviceAccount = require("./neodop-nadop-firebase-adminsdk-utczv-d5487d8c7f.json");
+var dbclient = require('mongodb').MongoClient;
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -62,42 +66,47 @@ app.post('/requesthelp', (req, res) => {
                     res.status(200);
                     res.send(res_log);
                     console.log("[Requesthelp] =======> Messaging Progress:");
+
                     for (var i = 0; i < len; i++) {
-                        userRef.doc(candidates[i]).get()
-                            .then(doc => {
-                                if (!doc.exists) {
-                                    console.log('[Requesthelp] ==== No such helper! ====');
-                                    if (i == len - 1) {
-                                        console.log("[Requesthelp] =======> Messaging Finished\n")
+                        if (candidates[i]) {
+                            userRef.doc(candidates[i]).get()
+                                .then(doc => {
+                                    if (!doc.exists) {
+                                        console.log('[Requesthelp] ==== No such helper! ====');
+                                        if (i == len - 1) {
+                                            console.log("[Requesthelp] =======> Messaging Finished\n")
+                                        }
+                                    } else if (doc.data().rating && doc.data().rating < minimum_rating) {
+                                        console.log("[Requesthelp] ==== Rating is too low: ", doc.data().rating, " uid: ", doc.id, "====");
+                                    } else {
+                                        var message = {
+                                            data: {
+                                                type: req_type,
+                                                helpee_uid: uid,
+                                                help_info: req.body.info
+                                            },
+                                            token: doc.data().token
+                                        };
+                                        admin.messaging().send(message)
+                                            .then((response) => {
+                                                // Response is a message ID string.
+                                                console.log('[Requesthelp] ==== Successfully sent message:', response, " to uid: ", doc.id, "====");
+                                                if (i == len - 1) {
+                                                    console.log("[Requesthelp] =======> Messaging Finished\n")
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                console.log('[Requesthelp] ==== Error sending message: ', error.errorInfo.message, " while to uid: ", doc.id, "====");
+                                                if (i == len - 1) {
+                                                    console.log("[Requesthelp] =======> Messaging Finished\n")
+                                                }
+                                            });
                                     }
-                                } else {
-                                    var message = {
-                                        data: {
-                                            type: req_type,
-                                            helpee_uid: uid,
-                                            help_info: req.body.info
-                                        },
-                                        token: doc.data().token
-                                    };
-                                    admin.messaging().send(message)
-                                        .then((response) => {
-                                        // Response is a message ID string.
-                                            console.log('[Requesthelp] ==== Successfully sent message:', response, " to uid: ", doc.id, "====");
-                                            if (i == len - 1) {
-                                                console.log("[Requesthelp] =======> Messaging Finished\n")
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log('[Requesthelp] ==== Error sending message:', error.errorInfo.message, " while to uid: ", doc.id, "====");
-                                            if (i == len - 1) {
-                                                console.log("[Requesthelp] =======> Messaging Finished\n")
-                                            }
-                                        });
-                                }
-                            })
+                                })
+                        }
                     }
                 }
-            })    
+            })
         }
         else {
             res_log += "\n[Requesthelp] Not enough helpers for " + uid + "\n";
@@ -118,14 +127,15 @@ app.post('/accepthelp', (req, res) => {
     var help_code = req.body.helpeeuid;
     var helper_uid_ = req.body.helperuid;
     var req_type = 'match_success';
+
     if (ongoing_help.has(help_code)) {
-        //res.sendStatus(400);
+        res.sendStatus(400);
     }
-    //else {
+    else {
         userRef.doc(req.body.helpeeuid).get()
-            .then(doc=> {
+            .then(doc => {
                 if (!doc.exists) {
-                    console.log('[Accepthelp] No such helper! (document not exists in firestore)');
+                    console.log('[Accepthelp] No such helper! (document not exists in firestore)\n');
                 } else {
                     var message = {
                         data: {
@@ -136,7 +146,7 @@ app.post('/accepthelp', (req, res) => {
                     };
                     admin.messaging().send(message)
                         .then((response) => {
-                            console.log("[Accepthelp] ======== matching success ========");
+                            console.log("[Accepthelp] ======== matching success ========\n");
                         })
                         .catch((error) => {
                             console.log("[Accepthelp] ======== Error Sending Message: ", error.errorInfo.message);
@@ -145,11 +155,12 @@ app.post('/accepthelp', (req, res) => {
             })
         ongoing_help.set(help_code, 1);
         res.sendStatus(200);
-    //}
+    }
 })
 
 app.post('/finishhelp', (req, res) => {
     var help_code = req.body.helpeeuid;
+    var rating = req.body.rating;
     if (ongoing_help.has(help_code)) {
         ongoing_help.delete(help_code);
         res.sendStatus(200);
@@ -158,6 +169,80 @@ app.post('/finishhelp', (req, res) => {
     else {
         res.sendStatus(400);
         console.log("[Finishhelp] Invalid Finish Request, helper UID: ", help_code);
+    }
+})
+
+app.post('/cancel_help', (req, res) => {
+    var help_code = req.body.helpeeuid;
+    console.log('[CancleHelp] helper: ', req.body.helperuid, " helpee: ", req.body.helpeeuid)
+    var req_type = 'canceledby_helper';
+    if (ongoing_help.has(help_code)) {
+        ongoing_help.delete(help_code);
+        userRef.doc(req.body.helpeeuid).get()
+            .then(doc => {
+                if (!doc.exists) {
+                    console.log('[CancleHelp] No such helpee! (document not exists in firestore)\n');
+                } else {
+                    var message = {
+                        data: {
+                            type: req_type
+                        },
+                        token: doc.data().token
+                    };
+                    admin.messaging().send(message)
+                        .then((response) => {
+                            console.log("[CancleHelp] ======== matching canceled ========\n");
+                        })
+                        .catch((error) => {
+                            console.log("[CancleHelp] ======== Error Sending Message: ", error.errorInfo.message);
+                        })
+                }
+            })
+        res.set('Content-Type', 'text/plain');
+        res.status(200);
+        res.send('Successfully Canceled');
+    }
+    else {
+        res.set('Content-Type', 'text/plain');
+        res.status(400);
+        res.send('No ongoing help!');
+    }
+})
+
+app.post('/cancel_request', (req, res) => {
+    var help_code = req.body.helpeeuid;
+    console.log('[CancleReq] helper: ', req.body.helperuid, " helpee: ", req.body.helpeeuid)
+    var req_type = 'canceledby_disabled';
+    if (ongoing_help.has(help_code)) {
+        ongoing_help.delete(help_code);
+        userRef.doc(req.body.helperuid).get()
+            .then(doc => {
+                if (!doc.exists) {
+                    console.log('[CancleReq] No such helper! (document not exists in firestore)');
+                } else {
+                    var message = {
+                        data: {
+                            type: req_type
+                        },
+                        token: doc.data().token
+                    };
+                    admin.messaging().send(message)
+                        .then((response) => {
+                            console.log("[CancleReq] ======== matching cancelled ========\n");
+                        })
+                        .catch((error) => {
+                            console.log("[CancleReq] ======== Error Sending Message: ", error.errorInfo.message);
+                        })
+                }
+            })
+        res.set('Content-Type', 'text/plain');
+        res.status(200);
+        res.send('Successfully Canceled');
+    }
+    else {
+        res.set('Content-Type', 'text/plain');
+        res.status(400);
+        res.send('No ongoing help!');
     }
 })
 
