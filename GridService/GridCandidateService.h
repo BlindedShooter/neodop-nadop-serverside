@@ -5,7 +5,7 @@
 
 /* each bucket represents 1 cell of the grid*/
 typedef std::unordered_multimap<coord, uinfo_t> usergrid_t;
-typedef std::unordered_set<uid_t> userset_t;
+typedef std::unordered_map<uid_t, coord> userset_t;
 
 /* iterates through pair<itor begin, itor end>. should manually increment iterator. */
 #define for_range(range) for (auto it = range.first; it != range.second;)
@@ -28,15 +28,17 @@ public:
 	/* update the grid with given uinfo, insert if new and assign if already in. */
 	void update_user(const uinfo_t &uinfo) {
 		//std::cout << "[C++]: update_user request   ";
+		userset_t::iterator tmp_uid_coord = uset.find(uinfo.uid);
 		/* If there is a user with the uid in the grid already, */
-		if (is_contain(uset, uinfo.uid)) {
-			for_cell(uinfo) {
+		if (tmp_uid_coord != uset.end()) {
+			//std::cout << "uid found in the server, uid: " << uinfo.uid << "  ";
+			for_cell(tmp_uid_coord->second) {
 				/* find the user,*/
 				if (it->second.uid == uinfo.uid) {
-					//std::cout << "uid found in the server, uid: " << uinfo.uid << "  ";
 					/* and if the coord was changed, */
-					if (it->first != uinfo) {
+					if (tmp_uid_coord->second != uinfo) {
 						//std::cout << "coord changed to: " << uinfo.lat << ", " << uinfo.lon << std::endl;
+						tmp_uid_coord->second = uinfo;
 						ugrid.erase(it);  // erase previous info and
 						insert_to_grid(uinfo); // insert new info to the grid. (since coord is the key)
 					}
@@ -53,8 +55,9 @@ public:
 		}
 		/* or this is the first time user came to the grid, */
 		else {
+			//std::cout << "No uid found in the server, newly insert" << std::endl;
 			/* newly insert the user. */
-			uset.insert(uinfo.uid);
+			uset.insert( {uinfo.uid, uinfo} );
 			insert_to_grid(uinfo);
 			total_users++;
 		}
@@ -68,9 +71,12 @@ public:
 		/* flag for nested for loop escape, when target_num is achieved.*/
 		bool search_finish = false;
 
+		//std::cout << "search_radius: " << max_radius << ", target_num: " << target_num << std::endl;
 		/* code below is just obvious. study for yourself! */
 		for (int r = 0; r < max_radius; r++) {
+			//std::cout << r << " radius search" << std::endl;
 			for (coord t : c.radius_sqaure(r)) {
+				//std::cout << "coord: " << t.x << ", " << t.y << std::endl;
 				for_cell(t) {
 					if (it->second.is_user_location_invalid(last_search_time)) {
 						uset.erase(it->second.uid);
@@ -80,15 +86,16 @@ public:
 					else {
 						result.push_back(it->second.uid);
 						if (result.size() > target_num) {
+							//std::cout << "Search finished with result size: " << result.size() << std::endl;
 							search_finish = true;
 							break;
 						}
 						it++;
 					}
 				}
-				if (search_finish = true) break;
+				if (search_finish == true) break;
 			}
-			if (search_finish = true) break;
+			if (search_finish == true) break;
 		}
 
 		return result;

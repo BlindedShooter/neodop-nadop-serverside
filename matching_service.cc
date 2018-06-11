@@ -152,7 +152,11 @@ void Grid_Object::get_all_users(const v8::FunctionCallbackInfo<v8::Value>& args)
         result += std::to_string(user.lon);
         result += ", timestamp: ";
         result += std::to_string(user.timestamp);
-        result += "\n";
+        result += ", GridCoord: (";
+        result += std::to_string(coord(user).x);
+        result += ", ";
+        result += std::to_string(coord(user).y);
+        result += ")\n";
     }
     args.GetReturnValue().Set(String::NewFromUtf8(isolate, result.c_str()));
 }
